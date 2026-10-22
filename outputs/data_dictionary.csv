@@ -1,0 +1,16 @@
+attribute,type,unit,range_or_levels,missing_raw,missing_pct,meaning
+age,discrete,years,17 to 90,0,0.0,age of the person
+workclass,nominal,-,8 levels,1836,5.64,type of employer
+fnlwgt,continuous,people,12285 to 1484705,0,0.0,census weight: people this row stands for
+education,nominal,-,16 levels,0,0.0,highest education level (16 levels)
+education-num,discrete,level 1-16,1 to 16,0,0.0,ordinal code of `education`
+marital-status,nominal,-,7 levels,0,0.0,marital status
+occupation,nominal,-,14 levels,1843,5.66,job type
+relationship,nominal,-,6 levels,0,0.0,role in the household
+race,nominal,-,5 levels,0,0.0,race
+sex,nominal,-,2 levels,0,0.0,sex (Female or Male)
+capital-gain,continuous,USD (1994),0 to 99999,0,0.0,yearly capital gains
+capital-loss,continuous,USD (1994),0 to 4356,0,0.0,yearly capital losses
+hours-per-week,discrete,hours,1 to 99,0,0.0,usual working hours per week
+native-country,nominal,-,41 levels,583,1.79,country of birth
+income,nominal,-,2 levels,0,0.0,response: yearly income >50K or <=50K

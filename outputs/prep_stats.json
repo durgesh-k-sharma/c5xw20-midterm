@@ -1,0 +1,71 @@
+{
+  "raw_rows": 32561,
+  "raw_cols": 15,
+  "raw_cells": 488415,
+  "raw_q_cells": 4262,
+  "raw_q_by_col": {
+    "workclass": 1836,
+    "occupation": 1843,
+    "native-country": 583
+  },
+  "raw_rows_with_q": 2399,
+  "raw_q_workclass_and_occupation": 1836,
+  "raw_dups": 24,
+  "raw_dups_ignoring_fnlwgt": 3465,
+  "raw_income_gt50k_share": 0.2408095574460244,
+  "edu_one_to_one": true,
+  "raw_iqr_outliers": {
+    "age": 143,
+    "fnlwgt": 992,
+    "education-num": 1198,
+    "capital-gain": 2712,
+    "capital-loss": 1519,
+    "hours-per-week": 9008
+  },
+  "raw_top_age90": 43,
+  "raw_top_hours99": 85,
+  "raw_top_gain99999": 159,
+  "raw_gain_positive": 2712,
+  "raw_loss_positive": 1519,
+  "clean_rows": 32537,
+  "clean_dups": 0,
+  "clean_unknown_cells": 4261,
+  "clean_unknown_by_col": {
+    "workclass": 1836,
+    "occupation": 1843,
+    "native-country": 582
+  },
+  "clean_rows_with_unknown": 2398,
+  "clean_iqr_outliers_kept": {
+    "age": 142,
+    "fnlwgt": 993,
+    "education-num": 1193,
+    "capital-gain": 2712,
+    "capital-loss": 1519,
+    "hours-per-week": 9002
+  },
+  "levels": {
+    "workclass": 9,
+    "education": 16,
+    "marital-status": 7,
+    "occupation": 15,
+    "relationship": 6,
+    "race": 5,
+    "sex": 2,
+    "native-country": 42
+  },
+  "n_onehot_cols": 102,
+  "n_features_encoded": 108,
+  "encoded_rows": 32537,
+  "size_product": 3513996,
+  "size_ok": true,
+  "size_product_raw_after_dedup": 488055,
+  "alt_drop_rows": 30139,
+  "alt_cols": 88,
+  "alt_product": 2652232,
+  "split_seed": 558,
+  "n_explore": 16268,
+  "n_confirm": 16269,
+  "rate_explore": 0.2409023850504057,
+  "rate_confirm": 0.2409490441944803
+}
