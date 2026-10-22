@@ -1,0 +1,132 @@
+{
+  "n": 16268,
+  "rate_women": 0.11171104077452988,
+  "rate_men": 0.3045792419932091,
+  "n_women": 5371,
+  "n_men": 10897,
+  "corr_age_income": 0.2380238221751611,
+  "corr_edunum_income": 0.344787381527493,
+  "rate_by_band": {
+    "1 Below HS": 0.0523,
+    "2 HS grad": 0.1567,
+    "3 Some college": 0.2071,
+    "4 Bachelors+": 0.4903
+  },
+  "band_rates": {
+    "1 Below HS|Female": [
+      0.0152,
+      656
+    ],
+    "1 Below HS|Male": [
+      0.0687,
+      1484
+    ],
+    "2 HS grad|Female": [
+      0.0618,
+      1682
+    ],
+    "2 HS grad|Male": [
+      0.2019,
+      3532
+    ],
+    "3 Some college|Female": [
+      0.0881,
+      1862
+    ],
+    "3 Some college|Male": [
+      0.2807,
+      3014
+    ],
+    "4 Bachelors+|Female": [
+      0.275,
+      1171
+    ],
+    "4 Bachelors+|Male": [
+      0.5783,
+      2867
+    ]
+  },
+  "band_gap_pts": {
+    "1 Below HS": 5.3,
+    "2 HS grad": 14.0,
+    "3 Some college": 19.3,
+    "4 Bachelors+": 30.3
+  },
+  "hours_Female": {
+    "mean": 36.64,
+    "median": 40.0,
+    "sd": 11.77,
+    "share40": 0.4602,
+    "share_lt40": 0.3735,
+    "share_gt40": 0.1663,
+    "skew": -0.01
+  },
+  "hours_Male": {
+    "mean": 42.47,
+    "median": 40.0,
+    "sd": 12.18,
+    "share40": 0.4704,
+    "share_lt40": 0.1658,
+    "share_gt40": 0.3638,
+    "skew": 0.31
+  },
+  "gain_pos_share": 0.083,
+  "gain_pos_n": 1350,
+  "gain_99999_n": 75,
+  "gain_99999_income_high": 1.0,
+  "gain_skew": 12.0,
+  "gain_zero_hours_median": 40.0,
+  "gain_pos_hours_median": 40.0,
+  "gain_zero_hours_mean": 40.23,
+  "gain_pos_hours_mean": 43.94,
+  "unknown_counts": {
+    "workclass": 926,
+    "occupation": 929,
+    "native-country": 294
+  },
+  "unknown_wc_and_occ": 926,
+  "unknown_wc_income": 0.108,
+  "known_wc_income": 0.2489,
+  "unknown_wc_age_median": 36.0,
+  "known_wc_age_median": 37.0,
+  "p1_rows": 15339,
+  "p1_strata_all": 55,
+  "p1_strata_both_sexes": 48,
+  "p1_rows_kept": 15235,
+  "p1_explore_or_mh": 0.252,
+  "p1_explore_crude_or": 0.289,
+  "p2_cell_n": {
+    "Married-civ-spouse|Female": 842,
+    "Married-civ-spouse|Male": 6646,
+    "Never-married|Female": 2361,
+    "Never-married|Male": 2985
+  },
+  "p2_cell_mean_hours": {
+    "Married-civ-spouse|Female": 37.12,
+    "Married-civ-spouse|Male": 44.22,
+    "Never-married|Female": 35.32,
+    "Never-married|Male": 38.4
+  },
+  "p4_workclass_n": {
+    "Private": 11327,
+    "Self-emp-not-inc": 1297,
+    "Local-gov": 1050,
+    "Unknown": 926,
+    "State-gov": 654,
+    "Self-emp-inc": 535,
+    "Federal-gov": 468,
+    "Without-pay": 8,
+    "Never-worked": 3
+  },
+  "p4_workclass_rate": {
+    "Federal-gov": 0.415,
+    "Local-gov": 0.304,
+    "Never-worked": 0.0,
+    "Private": 0.218,
+    "Self-emp-inc": 0.529,
+    "Self-emp-not-inc": 0.284,
+    "State-gov": 0.284,
+    "Unknown": 0.108,
+    "Without-pay": 0.0
+  }
+}

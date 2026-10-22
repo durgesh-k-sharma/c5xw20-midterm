@@ -1,0 +1,461 @@
+\begin{document}
+
+\twocolumn[%
+{\small\bfseries CSE558 Data Science\ \ \textbullet\ \ Midterm Project Report\ \ \textbullet\ \ Monsoon 2026\par}
+\vspace{4pt}
+{\LARGE\bfseries\raggedright\projecttitle\par}
+\vspace{6pt}
+\rule{\linewidth}{1pt}
+
+{\small
+\begin{tabularx}{\linewidth}{@{}K{2.4cm} Y@{}}
+\toprule
+Group name & C5XW20 \\
+Dataset & kaggle.com/datasets/mlbysoham/adult-dataset (UCI Adult, archive.ics.uci.edu/dataset/2/adult) \\
+Code & \textcolor{red}{github.com/[ADD-YOUR-ACCOUNT]/c5xw20-midterm} (scripts, README, pre-registration, outputs) \\
+\bottomrule
+\end{tabularx}}
+
+\vspace{2pt}
+{\small
+\begin{tabularx}{\linewidth}{@{}L{0.5cm} L{3.4cm} L{1.6cm} L{4.6cm} Y@{}}
+\toprule
+\textbf{\#} & \textbf{Name} & \textbf{Roll no.} & \textbf{Institute email} & \textbf{Contribution} \\
+\midrule
+1 & Aryan Bundela & 2023141 & aryan23141@iiitd.ac.in & Dataset, size check (1); repo, README \\
+2 & Durgesh Kumar Sharma & 2023214 & durgesh23214@iiitd.ac.in & Preparation, before and after (2, 3) \\
+3 & Shourya Sharma & 2020129 & shourya20129@iiitd.ac.in & EDA, problem statements (4); Test 1 \\
+4 & Arpit Dabas & 2023131 & arpit23131@iiitd.ac.in & Tests 2 to 4 (5); limitations (6) \\
+\bottomrule
+\end{tabularx}}
+\vspace{12pt}
+]
+
+%-----------------------------------------------------------------------
+\section{Dataset}
+
+\field{Source:}{Kaggle, ``Adult Dataset'' (user mlbysoham). It is the file \code{adult.data}, the
+training part of the UCI Adult (Census Income) data by Becker and Kohavi (1996), CC BY 4.0. UCI says
+it was extracted from the 1994 US Census database. One row is one person in a survey sample. We
+use \RawRows{} of the 48{,}842 UCI rows (\TrainShare\%).}
+
+\field{What is raw about it:}{the file has no header row. Missing values are written as \code{?}:
+\RawQCells{} cells in \RawQRows{} rows, in three columns. \RawDups{} rows are exact duplicates.
+\code{education} and \code{education-num} carry the same information (16 levels each, one to one).
+\code{capital-gain}, \code{hours-per-week} and \code{age} are capped at 99{,}999, 99 and 90. Money is in
+1994 dollars. UCI already removed some records (for example age 16 or below), so the data is only lightly
+dirty, and we say so rather than claim it is raw.}
+
+{\small
+\begin{tabularx}{\linewidth}{@{}L{3.0cm} Y Y@{}}
+\toprule
+ & \textbf{Raw file} & \textbf{After encoding} \\
+\midrule
+Instances (rows) & \RawRows & \CleanRows \\
+Attributes (columns) & \RawCols & \CleanCols \\
+Instances $\times$ attributes & \RawCells & \CleanCells \\
+\bottomrule
+\end{tabularx}}
+
+\field{Size check:}{$\CleanRows\times\CleanCols=\CleanCells\ge3{,}000{,}000$, so the requirement is
+met. The 108 columns are 6 numeric columns plus \OneHot{} one-hot columns (the 8 nominal columns have
+$9+16+7+15+6+5+2+42=102$ levels). The response \code{income} is not counted. The margin is thin:
+if we had dropped the rows with unknown values and the repeated \code{education} column, we would have
+$\AltRows\times\AltCols=\AltCells$, which fails. So we keep both choices (see Section 2).}
+
+\minihead{Key features}
+The full data dictionary (type, unit, range, missingness for all 15 columns) is in the repo file \code{outputs/data\_dictionary.csv}.\par
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{2.35cm} L{1.5cm} Y@{}}
+\toprule
+\textbf{Feature} & \textbf{Type} & \textbf{Real-world meaning, range, missing} \\
+\midrule
+\code{income} & nominal & response: yearly income $>$50K or not; \RawHighShare\% are $>$50K \\
+\code{sex} & nominal & Female or Male; none missing \\
+\code{age} & discrete & years, 17 to 90 (90 is a cap) \\
+\code{education} & nominal & highest level, 16 levels; \code{education-num} codes it 1 to 16 \\
+\code{occupation} & nominal & job type, 14 levels and \code{?}; \RawQOcc{} missing \\
+\code{workclass} & nominal & employer type, 8 levels and \code{?}; \RawQWC{} missing \\
+\code{hours-per-week} & discrete & usual weekly hours, 1 to 99 \\
+\code{capital-gain} & continuous & yearly gains in 1994 USD, 0 to 99{,}999 \\
+\code{fnlwgt} & continuous & census weight: people the row stands for \\
+\bottomrule
+\end{tabularx}}
+
+%-----------------------------------------------------------------------
+\section{Data preparation}
+
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{1.9cm} L{2.3cm} Y@{}}
+\toprule
+\textbf{Issue found} & \textbf{What we did} & \textbf{Why, and not the alternative} \\
+\midrule
+No header; \code{?} for missing
+ & added names; read \code{?} as a level called \code{Unknown}
+ & \RawQBoth{} rows have \code{workclass} and \code{occupation} both \code{?}: one group of people with no job
+   information, not random gaps. In the exploration half only \ExpUnkHigh\% of them earn $>$50K, against \ExpKnownHigh\% for the rest, so
+   the group carries information. A mode fill would invent jobs. Dropping rows loses \AltDropPct\% and fails the size check. \\
+\RawDups{} exact duplicate rows
+ & dropped
+ & they match on all 15 columns including the weight \code{fnlwgt}, so they are copies. \RawDupsNoW{} rows match when \code{fnlwgt} is ignored;
+   we keep them, because they are different people with similar profiles. \\
+\code{education} repeats \code{education-num}
+ & kept both; tests use 4 education bands
+ & dropping one column would break the size check. Bands (below HS, HS grad, some college, Bachelors or more) give strata big enough to test. \\
+Capped values: \TopGain{} gains at 99{,}999, \TopHours{} at 99 hours, \TopAge{} at age 90
+ & kept; three flag columns added
+ & a cap is how the survey recorded a large value, not an error. Replacing it would invent a number. Flags let us leave them out. \\
+IQR rule flags \IqrHours{} hours rows (\IqrHoursPct\%) and \IqrGain{} gains
+ & kept all rows; used rank tests and robust standard errors
+ & most people work exactly 40 hours or have zero gain, so the IQR is tiny and the rule flags normal values. Deleting them would remove real people. \\
+\code{fnlwgt} survey weight
+ & kept, not used in the main tests
+ & course tests treat each row as one person. One weighted check for Test 1 shows if this matters. \\
+8 nominal columns
+ & one-hot encoded; \code{education-num} kept as a number
+ & no order exists between nominal levels, so integer codes would invent one. \\
+Split
+ & 50/50, stratified on \code{income}, seed \SplitSeed, after removing duplicates
+ & EDA used the exploration half (\NExplore{} rows); tests used the confirmation half (\NConfirm{} rows). The $>$50K share is \RateExplore\% and \RateConfirm\%. \\
+\bottomrule
+\end{tabularx}}
+
+%-----------------------------------------------------------------------
+\section{What changed after preparation}
+
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{2.9cm} L{1.9cm} Y@{}}
+\toprule
+\textbf{Measure} & \textbf{Before} & \textbf{After} \\
+\midrule
+Rows & \RawRows & \CleanRows \\
+Attributes & \RawCols & \CleanCols \\
+Rows $\times$ attributes & \RawCells & \CleanCells \\
+Duplicate rows & \RawDups & 0 \\
+\code{?} cells & \RawQCells{} (\RawQRows{} rows) & 0; \CleanUnkCells{} cells (\CleanUnkRows{} rows, \UnkRowsPct\%) are now the level \code{Unknown} \\
+Capped values & not marked & flagged: \TopGain{} + \TopHours{} + \TopAge{} \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{Encoding took the attributes from \RawCols{} to \CleanCols, which clears the size
+requirement. We lost \RawDups{} rows (\RowsLostPct\%) and nothing else. We gained a clean
+\code{Unknown} level and bands for education. We did not remove any outlier, so every extreme value is
+still in the data. One duplicate row held a \code{?}, so the \code{Unknown} count (\CleanUnkCells) is one lower than the raw \code{?} count (\RawQCells).}
+
+%-----------------------------------------------------------------------
+\section{Basic questions and problem statement}
+
+All figures here use the exploration half only (\ExpN{} rows). The confirmation half was not opened until
+the tests.
+
+\begin{figure}[!ht]
+  \figfile{figures/fig_income_band.pdf}{4.1cm}
+  \caption{Men lead women in every education band, by \BandOneGap{} to \BandFourGap{} points; the gap
+  grows with education.}
+\end{figure}
+
+\begin{figure}[!ht]
+  \figfile{figures/fig_hours.pdf}{3.9cm}
+  \caption{\ExpUnderW\% of women work under 40 hours a week against \ExpUnderM\% of men; mean hours are
+  \ExpHoursW{} and \ExpHoursM.}
+\end{figure}
+
+\begin{figure}[!ht]
+  \figfile{figures/fig_gain.pdf}{3.9cm}
+  \caption{Capital gain is rare (\ExpGainShare\% of rows) and capped: all \ExpTopN{} rows at 99{,}999
+  earn $>$50K, so the cap marks the response.}
+\end{figure}
+
+\begin{figure}[!ht]
+  \figfile{figures/fig_unknown.pdf}{3.0cm}
+  \caption{Unknown values sit in three columns; \ExpUnkBoth{} rows (\ExpUnkPct\%) lack both
+  \code{workclass} and \code{occupation}.}
+\end{figure}
+
+\minihead{Basic questions}
+\begin{enumerate}[label=\arabic*.]
+  \item Do men earn more than women? Yes in this half: \ExpRateM\% of men and \ExpRateW\% of women are above 50K.
+  \item Does more education mean higher income? Yes: the $>$50K share goes from \BandOneRate\% (below HS) to
+        \BandFourRate\% (Bachelors or more); $r=\ExpCorrEdu$ with \code{education-num}.
+  \item Does income rise with age? Weakly: $r=\ExpCorrAge$.
+\end{enumerate}
+
+\minihead{Our problem statements}
+\noindent\fbox{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+\textbf{P1 (primary).} Among people with the same occupation and education band, are women less likely
+to earn above 50K than men?
+
+\smallskip
+\textbf{P2.} Is the sex gap in weekly hours different for married (civilian spouse present) people than
+for never-married people?
+
+\smallskip
+\textbf{P3.} Do people with a capital gain work different hours from people with none?
+
+\smallskip
+\textbf{P4.} Is income independent of the employer type (\code{workclass})?
+\end{minipage}}
+
+\field{How they are novel:}{the basic questions compare two raw groups. P1 asks if the raw gap survives
+matching on job and education. In the exploration half it does: the matched odds ratio is \ExpOneOR{}
+(\ExpOneBoth{} usable strata of \ExpOneStrata), almost the same as the raw one, \ExpOneCrude. P2 asks about a
+\emph{difference of two gaps}, which no single row records. P3 and P4 are closer to the basic questions. We keep them
+because they stress other tests: P3 has \ExpFortyW\% of women and \ExpFortyM\% of men at exactly 40 hours, and P4 has levels with a handful of
+rows.}
+
+\field{Cause and effect:}{P1 sounds causal, but it is not. Matching on two variables leaves out age, hours,
+industry and more. Occupation may also be a path through which a gap arises, and matching removes it. A causal claim would need
+a design with the same people compared with only the sex changed, or a full model of how jobs are assigned. We only claim an association.}
+
+\field{Disclosure:}{before the split, we saw two whole-data summaries (income share and mean hours by sex).
+\code{PREREGISTRATION.md}, committed as \PreregCommit{} before any script ran, lists this and fixes every test below.}
+
+%-----------------------------------------------------------------------
+\section{Statistical inferences}
+
+\field{Rows tested:}{the confirmation half, \NConfirmUsed{} people. Test 1 uses people with a known occupation
+(\TOneRowsUnk{} unknown rows out) and only strata that contain both sexes, which leaves
+\TOneRows{} people (\TOneNW{} women, \TOneNM{} men) in \TOneStrata{} of \TOneStrataAll{} strata (\TOneLostRows{} rows lost).
+Test 2 uses \TTwoN{} people. Test 3 uses all. Test 4 drops \TFourUnk{} unknown rows.
+We use $\alpha=0.05$ for every test, with a Holm correction across the four p-values.
+``Matters'' means the whole 95\% interval lies beyond the smallest difference; ``does not matter'' means it lies inside; otherwise ``inconclusive''.}
+
+%------------------------------------------------------------ Test 1
+\subsection*{Test 1 (P1): do women have lower odds of income above 50K within the same job and education band?}
+
+\tpart{a}{Hypotheses, written before running the test}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+$H_0$ & $\mathrm{OR}\ge1$ \\
+$H_1$ & $\mathrm{OR}<1$ \\
+Significance level & $\alpha=0.05$ \\
+Side & one-sided (left) \\
+Test & Cochran-Mantel-Haenszel (CMH) \\
+Smallest difference that matters & $\mathrm{OR}=0.80$ \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{OR: common odds ratio, women over men, across the occupation $\times$ education-band strata.
+One-sided, because P1 says women are less likely. An OR of 0.80 means 20\% lower odds, the smallest gap we
+would call worth noting.}
+
+\tpart{b}{Other tests we considered}
+\egblock{A yes-or-no outcome, a yes-or-no exposure and many strata call for CMH: it combines one $2\times2$ table per stratum.}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{2.4cm} Y@{}}
+\toprule
+\textbf{Also considered} & \textbf{Why we did not use it} \\
+\midrule
+Plain $\chi^2$, one table & ignores the strata, so a mix of jobs could fake or hide a gap. Run anyway: $\chi^2=\TOneCrudeChi$, $p=\TOneCrudeP$, crude OR \TOneCrudeOR{} (\TOneCrudeLo{} to \TOneCrudeHi). Same decision, but not matched. \\
+Logistic regression with stratum dummies & also valid, and gives OR \TOneLogOR{} (\TOneLogLo{} to \TOneLogHi), $z=\TOneLogZ$; it must drop strata with a constant outcome (\TOneLogRows{} rows, \TOneLogStrata{} strata) and fits a bigger model. CMH needs no model and is simpler. \\
+Fisher exact test per stratum & counts are large, and \TOneStrata{} separate tests would need their own correction. \\
+Breslow-Day test & not a test of P1: it asks if the OR is equal across strata. Tarone-adjusted $\chi^2=\TOneBD$ ($\TOneBDdf$ d.f.), $p=\TOneBDp$: mild differences, and \TOneBelow{} of \TOneDefined{} strata with a defined OR point below 1. \\
+Weighted logistic (check) & with \code{fnlwgt} weights and robust errors: OR \TOneWOR{} (\TOneWLo{} to \TOneWHi). Weights do not change the story. \\
+\bottomrule
+\end{tabularx}}
+
+\tpart{c}{Result}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+Estimate & $\widehat{\mathrm{OR}}=\TOneOR$ (women \TOneRateW\%, men \TOneRateM\% above 50K) \\
+95\% confidence interval & \TOneLo{} to \TOneHi{} (Robins-Breslow-Greenland) \\
+Test statistic (d.f.) & $\chi^2_{\mathrm{CMH}}=\TOneChi$ (1); $z=\TOneZ$ \\
+p-value (Holm-adjusted) & \TOneP{} (\TOneHolm) \\
+Decision & reject $H_0$; it \TOneVerdict \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{Within the same occupation and education band, women have about three quarters lower odds of
+earning above 50K (a pooled risk ratio of \TOneRR). The whole interval is below 0.80, so the gap matters.
+Matching did not shrink the gap: the crude OR was \TOneCrudeOR, the matched OR is \TOneOR. Job type and
+education level, as we measure them, do not explain it.}
+
+%------------------------------------------------------------ Test 2
+\subsection*{Test 2 (P2): is the sex gap in hours different for married and never-married people?}
+
+\tpart{a}{Hypotheses, written before running the test}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+$H_0$ & $D=0$ \\
+$H_1$ & $D\ne0$ \\
+Significance level & $\alpha=0.05$ \\
+Side & two-sided \\
+Test & t-test on the interaction in OLS, HC3 errors \\
+Smallest difference that matters & 2 hours per week \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{$D$ is the men-minus-women gap in mean weekly hours among married-civ-spouse people, minus the same gap among
+never-married people. Two-sided, because we did not know the direction in advance. Two hours is about one
+working day a month.}
+
+\tpart{b}{Other tests we considered}
+\egblock{We compare a difference of two gaps across two factors, so we need an interaction test. We use OLS with robust errors. Cell spreads run from \TTwoSdMin{} to \TTwoSdMax{} hours, and a Brown-Forsythe test rejects equal spreads
+($F=\TTwoBF$, $p=\TTwoBFp$), so we do not assume them, though the spreads are close.}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{2.4cm} Y@{}}
+\toprule
+\textbf{Also considered} & \textbf{Why we did not use it} \\
+\midrule
+Classic OLS t-test & assumes equal variances. Run anyway: $t=\TTwoClassT$, $p=\TTwoClassP$, same decision. \\
+Permutation test & makes no normality claim: sex shuffled within marital group 10{,}000 times, $p<10^{-4}$ (no shuffle reached $|D|$; the null SD is \TTwoPermSD{} against $D=\TTwoD$). Same decision. \\
+Two Welch t-tests & give a gap of \TTwoWmGap{} h for married (\TTwoWmLo{} to \TTwoWmHi) and \TTwoWnGap{} h for never married (\TTwoWnLo{} to \TTwoWnHi), but no test of their difference by themselves. A Wald $z$ on the two gaps gives $z=\TTwoWaldZ$, $p=\TTwoWaldP$, the same as the OLS result. \\
+Mann-Whitney, paired t-test & Mann-Whitney compares two groups, not a difference of two gaps; no person is in two groups. \\
+\bottomrule
+\end{tabularx}}
+
+\tpart{c}{Result}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+Estimate & $\hat D=\TTwoD$ h (gap \TTwoGapM{} h married, \TTwoGapN{} h never married) \\
+95\% confidence interval & \TTwoLo{} to \TTwoHi \\
+Test statistic (d.f.) & $t=\TTwoT$ (\TTwoDf) \\
+p-value (Holm-adjusted) & \TTwoP{} (\TTwoHolm) \\
+Decision & reject $H_0$; it \TTwoVerdict \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{The sex gap in hours is about \TTwoD{} hours larger among married people. The whole interval lies above 2 hours.
+Mean hours: married men \TTwoMeanMM, married women \TTwoMeanMW; never-married men \TTwoMeanNM, women \TTwoMeanNW. With a standard error of \TTwoSE{} h, a test of this size can detect a difference of about \TTwoMDE{} h (2.8 standard errors, 80\% power), below our 2-hour line. This is a pattern, not a cause: we did not match the marital groups on age.}
+
+%------------------------------------------------------------ Test 3
+\subsection*{Test 3 (P3): do people with a capital gain work different hours?}
+
+\tpart{a}{Hypotheses, written before running the test}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+$H_0$ & the two hours distributions are equal (no shift) \\
+$H_1$ & they differ (a shift) \\
+Significance level & $\alpha=0.05$ \\
+Side & two-sided \\
+Test & Mann-Whitney $U$ \\
+Smallest difference that matters & 2 hours per week \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{Groups: people with a capital gain ($n=\TThreeNG$) and with none ($n=\TThreeNN$). The estimate is the Hodges-Lehmann shift,
+the median of all pairwise differences. Two-sided, because we had no direction.}
+
+\tpart{b}{Other tests we considered}
+\egblock{Hours are whole numbers, skewed, and \TThreeFortyG\% and \TThreeFortyN\% of the two groups sit at exactly 40. A rank test needs no normality.
+The price is that it tests whether one group tends to have larger values, which is not the same as a gap in means.}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{2.4cm} Y@{}}
+\toprule
+\textbf{Also considered} & \textbf{Why we did not use it} \\
+\midrule
+Welch t-test & valid at this size and answers a different question, a gap in means: \TThreeWD{} h (\TThreeWLo{} to \TThreeWHi), $t=\TThreeWT$ (\TThreeWDf), $p=\TThreeWP$. Its interval is wholly above 2 h, so it \TThreeWVerdict. \\
+Brunner-Munzel test & allows unequal spreads and is the safer rank test: $|W|=\TThreeBMs$, $p=\TThreeBMp$. Same decision. \\
+Two-sample z-test & needs a known $\sigma$. \\
+Median test & both medians are \TThreeMedG{} h, so it has nothing to find. \\
+\bottomrule
+\end{tabularx}}
+
+\tpart{c}{Result}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+Estimate & Hodges-Lehmann shift \TThreeHL{} h (medians \TThreeMedG{} and \TThreeMedN{}; means \TThreeMeanG{} and \TThreeMeanN) \\
+95\% confidence interval & \TThreeLo{} to \TThreeHi{} (bootstrap, 2{,}000 resamples) \\
+Test statistic & $U=\TThreeU$, $z=\TThreeZ$; ($n_1=\TThreeNG$, $n_2=\TThreeNN$) \\
+p-value (Holm-adjusted) & \TThreeP{} (\TThreeHolm) \\
+Decision & reject $H_0$; on the Hodges-Lehmann estimate it \TThreeVerdict \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{The two tests disagree about size, and the reason matters. The distributions differ (a random person with a gain works more hours than a
+random person without one with probability \TThreePS, counting ties as half). But the typical person in both groups works 40 hours,
+so the Hodges-Lehmann shift is \TThreeHL{} and its interval has zero width. The difference is in the tails: \TThreeOverG\% of the gain group work over 40 hours against \TThreeOverN\%,
+and \TThreeUnderG\% work under 40 against \TThreeUnderN\%. The pre-registered rule gives ``does not matter''; the mean gap of \TThreeWD{} hours
+does matter. We report both and do not pick the one that suits us.}
+
+%------------------------------------------------------------ Test 4
+\subsection*{Test 4 (P4): is income independent of employer type?}
+
+\tpart{a}{Hypotheses, written before running the test}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+$H_0$ & income ($>$50K or not) is independent of \code{workclass} \\
+$H_1$ & they are not independent \\
+Significance level & $\alpha=0.05$ \\
+Side & two-sided (a $\chi^2$ test has no direction) \\
+Test & Pearson $\chi^2$ test of independence \\
+Smallest difference that matters & Cram\'er's $V=0.10$ \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{\code{Unknown} rows are out. \code{Never-worked} and \code{Without-pay} merge into \code{No-pay} (\TFourNoPay{} people), because each is too small alone. $V=0.10$ is the usual
+cut for a small association.}
+
+\tpart{b}{Other tests we considered}
+\egblock{A table of two categorical variables ($7\times2$) calls for a $\chi^2$ test of independence. Its rule of thumb holds: \TFourBelow{} of \TFourCells{} cells has an expected count under 5 (smallest \TFourMinE), and none is under 1.}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{2.4cm} Y@{}}
+\toprule
+\textbf{Also considered} & \textbf{Why we did not use it} \\
+\midrule
+G-test (likelihood ratio) & gives $G=\TFourG$ ($\TFourDf$ d.f.), $p=\TFourGp$; same decision, and no better at this size. \\
+Monte Carlo $\chi^2$ & 10{,}000 shuffles of income, $p<10^{-4}$. Same decision; it does not lean on the large-sample rule for the \code{No-pay} row. \\
+Fisher-Freeman-Halton exact & not feasible for \TFourN{} rows; the Monte Carlo test stands in for it. \\
+Z-test per level & compares only two groups; it does not test all seven together. \\
+\bottomrule
+\end{tabularx}}
+
+\tpart{c}{Result}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+Estimate & Cram\'er's $V=\TFourV$ (\code{Self-emp-inc} \TFourSEI\%, \code{Private} \TFourPriv\% above 50K) \\
+95\% confidence interval & \TFourLo{} to \TFourHi{} (bootstrap, 2{,}000 resamples) \\
+Test statistic (d.f.) & $\chi^2=\TFourChi$ (\TFourDf) \\
+p-value (Holm-adjusted) & \TFourP{} (\TFourHolm) \\
+Decision & reject $H_0$; it \TFourVerdict \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{Income depends on employer type, and the whole interval is above 0.10. The self-employed with an incorporated business have the highest $>$50K share (\TFourSEI\%); private employees have \TFourPriv\%.}
+
+\minihead{Summary of the four tests}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{0.5cm} L{3.4cm} L{0.8cm} L{1.5cm} Y@{}}
+\toprule
+\textbf{Test} & \textbf{Estimate (95\% CI)} & \textbf{Line} & \textbf{Holm p} & \textbf{Verdict} \\
+\midrule
+1 & OR \TOneOR{} (\TOneLo{} to \TOneHi) & 0.80 & \TOneHolm & \TOneVerdict \\
+2 & $\hat D$ \TTwoD{} h (\TTwoLo{} to \TTwoHi) & 2 h & \TTwoHolm & \TTwoVerdict \\
+3 & HL \TThreeHL{} h (\TThreeLo{} to \TThreeHi); mean gap \TThreeWD{} h (\TThreeWLo{} to \TThreeWHi) & 2 h & \TThreeHolm & HL: \TThreeVerdict; mean: \TThreeWVerdict \\
+4 & $V$ \TFourV{} (\TFourLo{} to \TFourHi) & 0.10 & \TFourHolm & \TFourVerdict \\
+\bottomrule
+\end{tabularx}}
+
+All four reject $H_0$ after the Holm correction. Only Test 3 changes its verdict with the estimate we choose.
+
+\begin{figure}[!ht]
+  \figfile{figures/fig_forest.pdf}{4.3cm}
+  \caption{Each estimate in units of its smallest difference that matters. Grey is the zone where the
+  difference does not matter; Test 3 lands in it only with the Hodges-Lehmann estimate.}
+\end{figure}
+
+%-----------------------------------------------------------------------
+\section{Limitations}
+\begin{itemize}
+  \item \textbf{Old data.} The records are from 1994 and the 50K line is in 1994 dollars. The results describe that year.
+  \item \textbf{Association only.} Matching leaves out age, hours and industry, and occupation may be a path of the gap, so P1 is not a proof of unequal pay.
+  \item \textbf{Not fully blind.} We saw two whole-data summaries before the split (Section 4). The overall direction of P1, and of the hours gap behind P2, was already known.
+  \item \textbf{Large $n$.} With about 16{,}000 rows, tiny gaps give tiny p-values, so we judge by the intervals against the thresholds. We chose those thresholds, and others could choose differently.
+  \item \textbf{Test 3 depends on the estimate} (above), because of ties at 40 hours.
+  \item \textbf{Independence.} The survey samples households, so spouses may both appear. The file has no household id to check this.
+  \item \textbf{Weights.} Main tests ignore \code{fnlwgt}; one weighted check agrees (OR \TOneWOR). Only the training half of UCI is used.
+  \item \textbf{Small cells.} \code{No-pay} has \TFourNoPay{} people; the comparison tests are not corrected for multiple testing, only the four main tests are.
+\end{itemize}
+
+\small\textbf{References.} Becker, B. and Kohavi, R. (1996). Adult. UCI Machine Learning Repository, archive.ics.uci.edu/dataset/2/adult.
+Kohavi, R. (1996). Scaling up the accuracy of naive-Bayes classifiers: a decision-tree hybrid. KDD-96.
+
+\end{document}

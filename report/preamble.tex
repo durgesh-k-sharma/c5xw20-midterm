@@ -1,0 +1,101 @@
+%=======================================================================
+%  CSE558 Data Science - Midterm Project Report Template
+%  Monsoon 2026, IIIT-Delhi
+%
+%  How to use this template
+%   1. Set your project title in the EDIT THIS block below.
+%   2. Replace everything in LIGHT BLUE with your own text and numbers.
+%      The numbers in the example are made up for illustration.
+%   3. Grey italic lines are instructions. Delete them as you write, or
+%      hide them all at once with \showhintsfalse.
+%   4. Upload your plots to the project and put their file names in
+%      \figfile{...}{...}. Until a file exists, a labelled box is shown.
+%
+%  Sections 1-5 follow items 1-5 of the report guidelines; Section 6 is
+%  the limitations of your analysis. The link to your code (item 6) goes
+%  at the top. At most 8 pages.
+%  Compile with pdfLaTeX (Overleaf's default setting works), twice.
+%=======================================================================
+\documentclass[10pt,a4paper,twocolumn]{article}
+
+%========================= EDIT THIS =========================
+% Your project title: it sets the heading AND the PDF's title.
+\newcommand{\projecttitle}{Does the gender gap in high income survive matching on job and education? Evidence from the 1994 US Adult census data}
+\newif\ifshowhints
+\showhintsfalse      % \showhintsfalse hides every grey instruction line
+%=============================================================
+
+%-------------------------------------------- fonts (no need to edit)
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \IfFileExists{carlito.sty}%
+    {\usepackage[sfdefault]{carlito}}%              Calibri look
+    {\usepackage[scaled=0.92]{helvet}\renewcommand{\familydefault}{\sfdefault}}%
+  \usepackage{courier}
+\else
+  \usepackage[no-math]{fontspec}
+  \setmainfont{Carlito}[Extension=.ttf, UprightFont=*-Regular, BoldFont=*-Bold,
+    ItalicFont=*-Italic, BoldItalicFont=*-BoldItalic]
+\fi
+
+%----------------------------------------------------------- packages
+\usepackage[margin=18mm,bottom=20mm,columnsep=7mm]{geometry}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{needspace}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[hidelinks]{hyperref}
+\input{numbers.tex}
+\hypersetup{pdftitle={\projecttitle},
+            pdfsubject={CSE558 Data Science, Monsoon 2026: Midterm Project Report}}
+
+%------------------------------------------------------------- layout
+\definecolor{eg}{HTML}{7396C4}         % worked example (light blue)
+\definecolor{hintgrey}{gray}{0.58}     % instructions (light grey)
+
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{12pt}{3pt}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{10pt}{2pt}
+\newcommand{\sectionbreak}{\needspace{10\baselineskip}}
+\newcommand{\subsectionbreak}{\needspace{10\baselineskip}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\setlist{leftmargin=1.2em, itemsep=2pt, topsep=2pt, parsep=0pt}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{4pt}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{K}[1]{>{\raggedright\arraybackslash\bfseries\boldmath}p{#1}}  % bold labels
+
+%--------------------------------------------------------- shorthands
+% Instruction line. Delete these as you fill the template in.
+\newcommand{\hint}[1]{\ifshowhints{\footnotesize\itshape\color{hintgrey}#1\par}\fi}
+% Worked example: inline or in a table cell. REPLACE the contents.
+\newcommand{\eg}[1]{#1}
+% Worked example running over a whole paragraph.
+\newcommand{\egblock}[1]{{#1\par}}
+% Bold label followed by an example.
+\newcommand{\field}[2]{\textbf{#1}~#2\par}
+% Part a)-c) of a test, and a small bold heading.
+\newcommand{\tpart}[2]{\par\needspace{12\baselineskip}\smallskip\textbf{#1)~#2}\par}
+\newcommand{\minihead}[1]{\par\needspace{8\baselineskip}\smallskip\textbf{#1}\par}
+% Column and file names.
+\newcommand{\code}[1]{\texttt{#1}}
+% \figfile{file}{height}: your plot, or a labelled box until the file exists.
+\newcommand{\figfile}[2]{%
+  \IfFileExists{#1}%
+    {\includegraphics[width=\linewidth,height=#2,keepaspectratio]{#1}}%
+    {\fbox{\parbox[c][#2][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}%
+      {\centering\small\itshape\color{hintgrey}Your plot: \detokenize{#1}}}}}
+
+%=======================================================================
