@@ -1,5 +1,7 @@
 # C5XW20: Midterm project (CSE558 Data Science, Monsoon 2026)
 
+Repo: https://github.com/durgesh-k-sharma/c5xw20-midterm
+
 Question: does the gender gap in high income (>50K) survive matching on occupation and education?
 Data: 1994 US census "Adult" data (UCI), train file, from Kaggle `mlbysoham/adult-dataset`.
 
@@ -38,5 +40,4 @@ The tests, hypotheses, sides, thresholds and estimates were not changed. We did 
 4. Before the split we saw two whole-data summaries (income share and mean hours by sex). This is listed in `PREREGISTRATION.md`.
 
 ## To do before submission
-- Put the real GitHub link in `report/body.tex` (red text near the top), then run `bash run_all.sh`.
 - Check the contribution table in the report.
